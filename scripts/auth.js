@@ -1,16 +1,38 @@
-// get data
-db.collection("guides").get().then(snapshot => {
-    setupGuides(snapshot.docs);
-});
 
 // Listen for auth status changes
 auth.onAuthStateChanged(user => {
     // console.log(user)
     if (user) {
-        console.log('user is logged in: ', user);
+        // get data
+        db.collection("guides").onSnapshot(snapshot => {
+            setupGuides(snapshot.docs);
+            setupUI(user);
+        });
+        // console.log('user is logged in: ', user);
     } else {
-        console.log('user is logged out: ');
+        // console.log('user is logged out: ');
+        setupUI();
+        setupGuides([]);
     }
+});
+
+// create new guide
+const createForm = document.querySelector("#create-form");
+createForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+
+    db.collection("guides").add({
+        title: createForm["title"].value,
+        content: createForm["content"].value
+    }). then(() => {
+        // close the modal and reset form after it is done adding to db.collection in firebase
+        const modal = document.querySelector("#modal-create");
+        M.Modal.getInstance(modal).close(); // close the modal after user has created a guide
+        createForm.reset();
+        // catch an error and console the error message
+    }).catch(err => {
+        console.log(err.message)
+    });
 });
 
 // sign up
