@@ -7,10 +7,9 @@ auth.onAuthStateChanged(user => {
         db.collection("guides").onSnapshot(snapshot => {
             setupGuides(snapshot.docs);
             setupUI(user);
-        }).catch(err => {
-            console.log(err.message);
+        }, err => {
+            console.log(err.message)
         });
-        // console.log('user is logged in: ', user);
     } else {
         // console.log('user is logged out: ');
         setupUI();
@@ -47,7 +46,11 @@ signupForm.addEventListener('submit', (e) => {
 
     // sign up the user
     auth.createUserWithEmailAndPassword(email, password).then(cred => {
-       
+        // set the bio to a doc (new collection called users if it doesn't exist) with user credential id
+        return  db.collection('users').doc(cred.user.uid).set({
+            bio: signupForm["signup-bio"].value
+        });
+    }).then(() => {
         const modal = document.querySelector("#modal-signup");
         M.Modal.getInstance(modal).close(); // close the modal after user is signed up
         signupForm.reset();
